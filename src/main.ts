@@ -8,7 +8,6 @@ const loader = new Loader({
   apiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
 })
 
-
 import App from './App.vue'
 import router from './router'
 
@@ -21,7 +20,8 @@ app.use(router)
 loader.importLibrary('geocoding').then((geocoding) => {
   console.log(geocoding)
   app.provide('geocoding', geocoding)
+  app.mount('#app')
+
 })
 
 
-app.mount('#app')
