@@ -5,6 +5,14 @@ const perplexity = createPerplexity({
   apiKey: import.meta.env.PERPLEXITY_API_KEY,
 });
 
+export interface DetailedLocation {
+  name: string;
+  city?: string;
+  sublocality?: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface LocationInfo {
   name: string;
   description: string;
@@ -44,12 +52,12 @@ export interface NearbyLocationsResult {
 
 /**
  * Get comprehensive information about a location using Perplexity Sonar Pro
- * @param location - Location name (e.g., "New York City" or "Paris, France")
+ * @param location - Detailed location information including name, city, sublocality, and coordinates
  * @returns Promise with location information or error
  */
-export async function getLocationInfo(location: string): Promise<LocationInfoResult> {
+export async function getLocationInfo(location: DetailedLocation): Promise<LocationInfoResult> {
   try {
-    if (!location || location.trim() === '') {
+    if (!location || !location.name || location.name.trim() === '') {
       return {
         success: false,
         error: {
@@ -59,16 +67,14 @@ export async function getLocationInfo(location: string): Promise<LocationInfoRes
       };
     }
 
-    const prompt = `Provide comprehensive information about ${location}. Include:
-    - Brief description and overview
-    - Historical significance
-    - Cultural aspects and local traditions
-    - Main attractions and landmarks
-    - Demographics and population
-    - Economic characteristics
-    - Climate and geography
-
-    Please provide detailed, factual information that would be useful for someone planning to visit or learn about this location.`;
+    const promptTemplate = await readPromptTemplate('about.txt');
+    const prompt = processPromptTemplate(promptTemplate, {
+      location: location.name,
+      city: location.city || 'Not specified',
+      sublocality: location.sublocality || 'Not specified',
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString()
+    });
 
     const result = await generateText({
       model: perplexity('sonar-pro'),
@@ -82,7 +88,7 @@ export async function getLocationInfo(location: string): Promise<LocationInfoRes
 
     // Extract structured data from the response
     const locationInfo: LocationInfo = {
-      name: location,
+      name: location.name,
       description: content,
       // You can add more sophisticated parsing here if needed
     };
@@ -106,18 +112,18 @@ export async function getLocationInfo(location: string): Promise<LocationInfoRes
 
 /**
  * Find nearby interesting locations using Perplexity Sonar Reasoning
- * @param location - Base location name (e.g., "New York City" or "Paris, France")
+ * @param location - Detailed location information including name, city, sublocality, and coordinates
  * @param radius - Search radius (optional, defaults to "10 km")
  * @param interests - Array of interest categories (optional)
  * @returns Promise with nearby locations or error
  */
 export async function findNearbyInterestingLocations(
-  location: string,
+  location: DetailedLocation,
   radius: string = '10 km',
   interests: string[] = ['tourist attractions', 'restaurants', 'museums', 'parks', 'historical sites']
 ): Promise<NearbyLocationsResult> {
   try {
-    if (!location || location.trim() === '') {
+    if (!location || !location.name || location.name.trim() === '') {
       return {
         success: false,
         error: {
@@ -128,17 +134,16 @@ export async function findNearbyInterestingLocations(
     }
 
     const interestsList = interests.join(', ');
-    const prompt = `Find interesting locations near ${location} within ${radius}. Focus on: ${interestsList}.
-
-    For each location, provide:
-    - Name of the place
-    - Brief description
-    - Category (restaurant, museum, park, etc.)
-    - Approximate distance from ${location}
-    - Why it's interesting or worth visiting
-    - Any ratings or notable features
-
-    Please provide at least 5-10 diverse recommendations that would appeal to different types of visitors.`;
+    const promptTemplate = await readPromptTemplate('nearby.txt');
+    const prompt = processPromptTemplate(promptTemplate, {
+      location: location.name,
+      city: location.city || 'Not specified',
+      sublocality: location.sublocality || 'Not specified',
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString(),
+      radius,
+      interests: interestsList
+    });
 
     const result = await generateText({
       model: perplexity('sonar-reasoning'),
@@ -178,13 +183,13 @@ export async function findNearbyInterestingLocations(
 
 /**
  * Get both location info and nearby locations in a single call
- * @param location - Location name
+ * @param location - Detailed location information including name, city, sublocality, and coordinates
  * @param radius - Search radius for nearby locations
  * @param interests - Array of interest categories
  * @returns Promise with combined results
  */
 export async function getLocationPackage(
-  location: string,
+  location: DetailedLocation,
   radius: string = '10 km',
   interests: string[] = ['tourist attractions', 'restaurants', 'museums', 'parks', 'historical sites']
 ): Promise<{
@@ -200,4 +205,36 @@ export async function getLocationPackage(
     locationInfo,
     nearbyLocations
   };
+}
+
+/**
+ * Read a prompt template from a text file
+ * @param filename - Name of the prompt file (e.g., 'about.txt')
+ * @returns Promise with the prompt content
+ */
+async function readPromptTemplate(filename: string): Promise<string> {
+  try {
+    const response = await fetch(`/assets/prompts/${filename}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load prompt file: ${filename}`);
+    }
+    return await response.text();
+  } catch (error) {
+    console.error(`Error reading prompt file ${filename}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Replace placeholders in a prompt template
+ * @param template - The prompt template with placeholders
+ * @param replacements - Object with placeholder values
+ * @returns The processed prompt
+ */
+function processPromptTemplate(template: string, replacements: Record<string, string>): string {
+  let processedPrompt = template;
+  Object.entries(replacements).forEach(([key, value]) => {
+    processedPrompt = processedPrompt.replace(new RegExp(`{${key}}`, 'g'), value);
+  });
+  return processedPrompt;
 }

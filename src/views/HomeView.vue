@@ -63,7 +63,15 @@ const knowMore = async () => {
   infoError.value = null;
 
   try {
-    const result = await getLocationPackage(locationData.value.city);
+    const locationName = `${locationData.value.locality ?? ''}, ${locationData.value.city}`;
+    const detailedLocation = {
+      name: locationName,
+      city: locationData.value.city,
+      sublocality: locationData.value.locality,
+      latitude: locationData.value.lat,
+      longitude: locationData.value.lng
+    };
+    const result = await getLocationPackage(detailedLocation);
 
     if (result.locationInfo.success && result.locationInfo.data) {
       locationInfo.value = result.locationInfo.data;

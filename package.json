@@ -21,6 +21,8 @@
     "ai": "^4.3.19",
     "bootstrap": "^5.3.7",
     "bootstrap-vue-next": "^0.30.4",
+    "dompurify": "^3.2.6",
+    "marked": "^16.1.1",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"

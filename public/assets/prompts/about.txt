@@ -1,0 +1,17 @@
+Provide comprehensive information about {location}. 
+
+Location Details:
+- City: {city}
+- Sublocality: {sublocality}
+- Coordinates: {latitude}, {longitude}
+
+Include:
+- Brief description and overview
+- Historical significance
+- Cultural aspects and local traditions
+- Main attractions and landmarks
+- Demographics and population
+- Economic characteristics
+- Climate and geography
+
+Please provide detailed, factual information that would be useful for someone planning to visit or learn about this location. Use the precise coordinates to ensure accuracy and focus on the specific area mentioned. 

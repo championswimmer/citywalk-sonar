@@ -1,0 +1,16 @@
+Find interesting locations near {location} within {radius}. Focus on: {interests}.
+
+Base Location Details:
+- City: {city}
+- Sublocality: {sublocality}
+- Coordinates: {latitude}, {longitude}
+
+For each location, provide:
+- Name of the place
+- Brief description
+- Category (restaurant, museum, park, etc.)
+- Approximate distance from {location}
+- Why it's interesting or worth visiting
+- Any ratings or notable features
+
+Please provide at least 5-10 diverse recommendations that would appeal to different types of visitors. Use the precise coordinates to find the most accurate nearby locations. 
