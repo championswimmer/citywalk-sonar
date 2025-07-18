@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue';
 import { getCurrentLocation, type LocationData } from '@/services/geocoding';
+import { getLocationPackage, type LocationInfo, type NearbyLocation } from '@/services/location-info';
 
 const geocoding = inject<google.maps.GeocodingLibrary>('geocoding')
 
@@ -10,6 +11,12 @@ console.log(geocoding)
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const locationData = ref<LocationData | null>(null);
+
+// Location info state
+const isLoadingInfo = ref(false);
+const infoError = ref<string | null>(null);
+const locationInfo = ref<LocationInfo | null>(null);
+const nearbyLocations = ref<NearbyLocation[]>([]);
 
 // Tab management state
 const activeTab = ref<'about' | 'nearby'>('about');
@@ -43,6 +50,36 @@ const locateMe = async () => {
     error.value = 'An unexpected error occurred while getting location.';
   } finally {
     isLoading.value = false;
+  }
+};
+
+// Function to get location information using AI
+const knowMore = async () => {
+  if (!locationData.value) {
+    return;
+  }
+
+  isLoadingInfo.value = true;
+  infoError.value = null;
+
+  try {
+    const result = await getLocationPackage(locationData.value.city);
+
+    if (result.locationInfo.success && result.locationInfo.data) {
+      locationInfo.value = result.locationInfo.data;
+    } else {
+      infoError.value = result.locationInfo.error?.message || 'Failed to get location information.';
+    }
+
+    if (result.nearbyLocations.success && result.nearbyLocations.data) {
+      nearbyLocations.value = result.nearbyLocations.data;
+    } else {
+      infoError.value = result.nearbyLocations.error?.message || 'Failed to get nearby locations.';
+    }
+  } catch {
+    infoError.value = 'An unexpected error occurred while getting location details.';
+  } finally {
+    isLoadingInfo.value = false;
   }
 };
 </script>
@@ -103,8 +140,39 @@ const locateMe = async () => {
         <div style="margin-bottom: 0.5rem;">
           <strong>Locality:</strong> {{ locationData.locality }}
         </div>
-        <div style="font-size: 0.875rem; color: #6c757d;">
+        <div style="font-size: 0.875rem; color: #6c757d; margin-bottom: 1rem;">
           <strong>Coordinates:</strong> {{ locationData.lat.toFixed(6) }}, {{ locationData.lng.toFixed(6) }}
+        </div>
+
+        <!-- Know More Button -->
+        <button @click="knowMore" :disabled="isLoadingInfo || !locationData" style="
+            padding: 0.5rem 1rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+            width: 100%;
+          " :style="{
+            backgroundColor: isLoadingInfo ? '#6c757d' : '#28a745',
+            cursor: isLoadingInfo ? 'not-allowed' : 'pointer'
+          }">
+          {{ isLoadingInfo ? 'Loading...' : 'Know More' }}
+        </button>
+
+        <!-- Info Error message -->
+        <div v-if="infoError" style="
+          margin-top: 0.5rem;
+          padding: 0.5rem;
+          background-color: #f8d7da;
+          border: 1px solid #f5c6cb;
+          border-radius: 0.25rem;
+          color: #721c24;
+          font-size: 0.875rem;
+        ">
+          {{ infoError }}
         </div>
       </div>
 
@@ -158,15 +226,38 @@ const locateMe = async () => {
             border: 1px solid #e9ecef;
           ">
             <h3 style="margin: 0 0 1rem 0; color: #495057;">About {{ locationData.city }}</h3>
-            <p style="color: #6c757d; line-height: 1.6; margin: 0;">
-              Information about {{ locationData.city }}, {{ locationData.locality }} will be loaded here.
-              This will include details about the area, demographics, points of interest, and other relevant
-              information.
-            </p>
-            <div
-              style="margin-top: 1rem; padding: 0.75rem; background-color: #fff3cd; border-radius: 0.25rem; border: 1px solid #ffeaa7;">
-              <small style="color: #856404;">
-                📍 Content will be populated after implementing data fetching functionality.
+
+            <!-- Loading state -->
+            <div v-if="isLoadingInfo" style="
+              text-align: center;
+              padding: 2rem;
+              color: #6c757d;
+            ">
+              <div style="margin-bottom: 1rem;">🔄 Loading location information...</div>
+            </div>
+
+            <!-- Location info content -->
+            <div v-else-if="locationInfo" style="
+              color: #495057;
+              line-height: 1.6;
+              white-space: pre-wrap;
+            ">
+              {{ locationInfo.description }}
+            </div>
+
+            <!-- No data available -->
+            <div v-else style="
+              background-color: #fff3cd;
+              border-radius: 0.25rem;
+              padding: 1rem;
+              border: 1px solid #ffeaa7;
+              text-align: center;
+            ">
+              <div style="color: #856404; margin-bottom: 0.5rem;">
+                📍 Click "Know More" to get detailed information about {{ locationData.city }}
+              </div>
+              <small style="color: #6c757d;">
+                This will include history, culture, attractions, demographics, and more.
               </small>
             </div>
           </div>
@@ -179,15 +270,79 @@ const locateMe = async () => {
             border: 1px solid #e9ecef;
           ">
             <h3 style="margin: 0 0 1rem 0; color: #495057;">Nearby Places</h3>
-            <p style="color: #6c757d; line-height: 1.6; margin: 0;">
-              Nearby places and points of interest around {{ locationData.city }}, {{ locationData.locality }} will be
-              displayed here.
-              This will include restaurants, shops, attractions, and other venues in the area.
-            </p>
-            <div
-              style="margin-top: 1rem; padding: 0.75rem; background-color: #fff3cd; border-radius: 0.25rem; border: 1px solid #ffeaa7;">
-              <small style="color: #856404;">
-                🗺️ Content will be populated after implementing nearby places API integration.
+
+            <!-- Loading state -->
+            <div v-if="isLoadingInfo" style="
+              text-align: center;
+              padding: 2rem;
+              color: #6c757d;
+            ">
+              <div style="margin-bottom: 1rem;">🔄 Finding nearby interesting locations...</div>
+            </div>
+
+            <!-- Nearby locations content -->
+            <div v-else-if="nearbyLocations && nearbyLocations.length > 0">
+              <div v-for="(location, index) in nearbyLocations" :key="index" style="
+                  background-color: #fff;
+                  border-radius: 0.375rem;
+                  padding: 1rem;
+                  margin-bottom: 1rem;
+                  border: 1px solid #e9ecef;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                ">
+                <h4 style="margin: 0 0 0.5rem 0; color: #495057;">{{ location.name }}</h4>
+                <div style="
+                  color: #6c757d;
+                  font-size: 0.875rem;
+                  margin-bottom: 0.5rem;
+                ">
+                  <span style="
+                    background-color: #e9ecef;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.25rem;
+                    font-size: 0.75rem;
+                  ">
+                    {{ location.category }}
+                  </span>
+                  <span v-if="location.distance" style="margin-left: 0.5rem;">
+                    📍 {{ location.distance }}
+                  </span>
+                </div>
+                <div style="
+                  color: #495057;
+                  line-height: 1.6;
+                  white-space: pre-wrap;
+                  font-size: 0.875rem;
+                ">
+                  {{ location.description }}
+                </div>
+                <div v-if="location.whyInteresting" style="
+                  margin-top: 0.5rem;
+                  padding: 0.5rem;
+                  background-color: #f0f8ff;
+                  border-radius: 0.25rem;
+                  border-left: 3px solid #007bff;
+                  font-size: 0.875rem;
+                  color: #495057;
+                ">
+                  <strong>Why it's interesting:</strong> {{ location.whyInteresting }}
+                </div>
+              </div>
+            </div>
+
+            <!-- No data available -->
+            <div v-else style="
+              background-color: #fff3cd;
+              border-radius: 0.25rem;
+              padding: 1rem;
+              border: 1px solid #ffeaa7;
+              text-align: center;
+            ">
+              <div style="color: #856404; margin-bottom: 0.5rem;">
+                🗺️ Click "Know More" to discover interesting places around {{ locationData.city }}
+              </div>
+              <small style="color: #6c757d;">
+                This will include restaurants, attractions, museums, parks, and other venues in the area.
               </small>
             </div>
           </div>
