@@ -245,12 +245,52 @@ const knowMore = async () => {
             </div>
 
             <!-- Location info content -->
-            <div v-else-if="locationInfo" style="
-              color: #495057;
-              line-height: 1.6;
-              white-space: pre-wrap;
-            ">
-              {{ locationInfo.description }}
+            <div v-else-if="locationInfo" style="color: #495057; line-height: 1.6;">
+              <!-- Description -->
+              <div style="margin-bottom: 1.5rem;">
+                <p style="margin: 0; font-size: 1.1rem;">{{ locationInfo.description }}</p>
+              </div>
+
+              <!-- History -->
+              <div v-if="locationInfo.history" style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🏛️ History</h4>
+                <p style="margin: 0;">{{ locationInfo.history }}</p>
+              </div>
+
+              <!-- Culture -->
+              <div v-if="locationInfo.culture" style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🎭 Culture</h4>
+                <p style="margin: 0;">{{ locationInfo.culture }}</p>
+              </div>
+
+              <!-- Attractions -->
+              <div v-if="locationInfo.attractions && locationInfo.attractions.length > 0"
+                style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🎯 Attractions</h4>
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                  <li v-for="attraction in locationInfo.attractions" :key="attraction" style="margin-bottom: 0.25rem;">
+                    {{ attraction }}
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Demographics -->
+              <div v-if="locationInfo.demographics" style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">👥 Demographics</h4>
+                <p style="margin: 0;">{{ locationInfo.demographics }}</p>
+              </div>
+
+              <!-- Economy -->
+              <div v-if="locationInfo.economy" style="margin-bottom: 1.5rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">💼 Economy</h4>
+                <p style="margin: 0;">{{ locationInfo.economy }}</p>
+              </div>
+
+              <!-- Climate -->
+              <div v-if="locationInfo.climate" style="margin-bottom: 0;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🌤️ Climate</h4>
+                <p style="margin: 0;">{{ locationInfo.climate }}</p>
+              </div>
             </div>
 
             <!-- No data available -->
@@ -314,6 +354,9 @@ const knowMore = async () => {
                   </span>
                   <span v-if="location.distance" style="margin-left: 0.5rem;">
                     📍 {{ location.distance }}
+                  </span>
+                  <span v-if="location.rating" style="margin-left: 0.5rem;">
+                    ⭐ {{ location.rating }}/5
                   </span>
                 </div>
                 <div style="

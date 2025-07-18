@@ -1,5 +1,6 @@
 import { createPerplexity } from '@ai-sdk/perplexity';
-import { generateText } from 'ai';
+import { generateText, generateObject } from 'ai';
+import { z } from 'zod';
 
 const perplexity = createPerplexity({
   apiKey: import.meta.env.PERPLEXITY_API_KEY,
@@ -9,6 +10,10 @@ export interface AIGenerationOptions {
   model: string;
   temperature?: number;
   maxTokens?: number;
+}
+
+export interface AIObjectGenerationOptions<T = unknown> extends AIGenerationOptions {
+  schema: z.ZodSchema<T>;
 }
 
 /**
@@ -29,6 +34,34 @@ export async function generateAIText(
   });
 
   return result.text;
+}
+
+/**
+ * Generate structured object using Perplexity AI with specified schema
+ * @param prompt - The prompt to send to the AI
+ * @param options - Generation options including model, temperature, maxTokens, and schema
+ * @returns Promise with the generated object
+ */
+export async function generateAIObject<T>(
+  prompt: string,
+  options: AIObjectGenerationOptions<T>
+): Promise<T> {
+  console.log("Schema", options.schema);
+  try {
+    const result = await generateObject({
+      model: perplexity(options.model),
+      prompt: prompt,
+      schema: options.schema,
+      temperature: options.temperature || 0.3,
+      maxTokens: options.maxTokens || 1000,
+    });
+
+    return result.object;
+  } catch (error) {
+    console.error('generateAIObject error:', error);
+    console.error('Prompt was:', prompt);
+    throw error;
+  }
 }
 
 /**

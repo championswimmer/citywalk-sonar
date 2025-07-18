@@ -1,17 +1,20 @@
-Provide comprehensive information about {location}. 
+Provide comprehensive information about {location} in a structured format.
 
 Location Details:
 - City: {city}
 - Sublocality: {sublocality}
 - Coordinates: {latitude}, {longitude}
 
-Include:
-- Brief description and overview
-- Historical significance
-- Cultural aspects and local traditions
-- Main attractions and landmarks
-- Demographics and population
-- Economic characteristics
-- Climate and geography
+Provide a structured response with the following information:
+- name: The full name of the location
+- description: Brief description and overview (2-3 sentences)
+- history: Historical significance and background
+- culture: Cultural aspects, local traditions, and characteristics
+- attractions: List of main attractions, landmarks, and points of interest
+- demographics: Population and demographic information
+- economy: Economic activities, industries, and characteristics
+- climate: Climate patterns, weather, and geographical features
 
 Please provide detailed, factual information that would be useful for someone planning to visit or learn about this location. Use the precise coordinates to ensure accuracy and focus on the specific area mentioned. 
+
+IMPORTANT: RESPOND DIRECTLY WITH THE JSON WITHOUT ANY OTHER TEXT AROUND IT

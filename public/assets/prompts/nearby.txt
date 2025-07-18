@@ -5,12 +5,14 @@ Base Location Details:
 - Sublocality: {sublocality}
 - Coordinates: {latitude}, {longitude}
 
-For each location, provide:
-- Name of the place
-- Brief description
-- Category (restaurant, museum, park, etc.)
-- Approximate distance from {location}
-- Why it's interesting or worth visiting
-- Any ratings or notable features
+Respond with a JSON array of nearby locations. Each location must include these exact fields:
+- name: The name of the place (required string)
+- description: Brief description of what makes this location interesting (required string)
+- category: Category type like "restaurant", "museum", "park", "historical site" (required string)
+- distance: Approximate distance from the base location like "2.5 km" or "500 m" (optional string)
+- rating: Numerical rating between 0-5 if available (optional number)
+- whyInteresting: Explanation of why this location is worth visiting (required string)
 
-Please provide at least 5-10 diverse recommendations that would appeal to different types of visitors. Use the precise coordinates to find the most accurate nearby locations. 
+Return 5-10 diverse recommendations. Ensure all required fields have non-empty values. Use the precise coordinates to find accurate nearby locations. 
+
+IMPORTANT: RESPOND DIRECTLY WITH THE JSON WITHOUT ANY OTHER TEXT AROUND IT
