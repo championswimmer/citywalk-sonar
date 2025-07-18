@@ -1,9 +1,4 @@
-import { createPerplexity } from '@ai-sdk/perplexity';
-import { generateText } from 'ai';
-
-const perplexity = createPerplexity({
-  apiKey: import.meta.env.PERPLEXITY_API_KEY,
-});
+import { generateAIText, readPromptTemplate, processPromptTemplate } from './aisdk';
 
 export interface DetailedLocation {
   name: string;
@@ -76,15 +71,11 @@ export async function getLocationInfo(location: DetailedLocation): Promise<Locat
       longitude: location.longitude.toString()
     });
 
-    const result = await generateText({
-      model: perplexity('sonar-pro'),
-      prompt: prompt,
+    const content = await generateAIText(prompt, {
+      model: 'sonar',
       temperature: 0.3,
       maxTokens: 1000,
     });
-
-    // Parse the response to extract structured information
-    const content = result.text;
 
     // Extract structured data from the response
     const locationInfo: LocationInfo = {
@@ -145,15 +136,11 @@ export async function findNearbyInterestingLocations(
       interests: interestsList
     });
 
-    const result = await generateText({
-      model: perplexity('sonar-reasoning'),
-      prompt: prompt,
+    const content = await generateAIText(prompt, {
+      model: 'sonar',
       temperature: 0.4,
       maxTokens: 1200,
     });
-
-    // Parse the response to extract nearby locations
-    const content = result.text;
 
     // For now, return the raw content as description
     // You can add more sophisticated parsing here to extract structured data
@@ -205,36 +192,4 @@ export async function getLocationPackage(
     locationInfo,
     nearbyLocations
   };
-}
-
-/**
- * Read a prompt template from a text file
- * @param filename - Name of the prompt file (e.g., 'about.txt')
- * @returns Promise with the prompt content
- */
-async function readPromptTemplate(filename: string): Promise<string> {
-  try {
-    const response = await fetch(`/assets/prompts/${filename}`);
-    if (!response.ok) {
-      throw new Error(`Failed to load prompt file: ${filename}`);
-    }
-    return await response.text();
-  } catch (error) {
-    console.error(`Error reading prompt file ${filename}:`, error);
-    throw error;
-  }
-}
-
-/**
- * Replace placeholders in a prompt template
- * @param template - The prompt template with placeholders
- * @param replacements - Object with placeholder values
- * @returns The processed prompt
- */
-function processPromptTemplate(template: string, replacements: Record<string, string>): string {
-  let processedPrompt = template;
-  Object.entries(replacements).forEach(([key, value]) => {
-    processedPrompt = processedPrompt.replace(new RegExp(`{${key}}`, 'g'), value);
-  });
-  return processedPrompt;
 }
