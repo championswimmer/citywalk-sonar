@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue';
+import { getCurrentLocation, type LocationData } from '@/services/geocoding';
 
 const geocoding = inject<google.maps.GeocodingLibrary>('geocoding')
 
@@ -8,12 +9,7 @@ console.log(geocoding)
 // Reactive state
 const isLoading = ref(false);
 const error = ref<string | null>(null);
-const locationData = ref<{
-  lat: number;
-  lng: number;
-  city: string;
-  locality: string;
-} | null>(null);
+const locationData = ref<LocationData | null>(null);
 
 // Tab management state
 const activeTab = ref<'about' | 'nearby'>('about');
@@ -27,11 +23,6 @@ const switchTab = (tab: 'about' | 'nearby') => {
 
 // Function to get user's current location
 const locateMe = async () => {
-  if (!navigator.geolocation) {
-    error.value = 'Geolocation is not supported by this browser.';
-    return;
-  }
-
   if (!geocoding) {
     error.value = 'Geocoding service is not available.';
     return;
@@ -41,71 +32,15 @@ const locateMe = async () => {
   error.value = null;
 
   try {
-    // Get current position
-    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
-      });
-    });
+    const result = await getCurrentLocation(geocoding);
 
-    const { latitude, longitude } = position.coords;
-
-    // Use geocoding to get address details
-    const geocoder = new google.maps.Geocoder();
-    const response = await geocoder.geocode({
-      location: { lat: latitude, lng: longitude }
-    });
-
-    if (response.results && response.results.length > 0) {
-      const result = response.results[0];
-
-      // Extract city and locality from address components
-      let city = '';
-      let locality = '';
-
-      result.address_components.forEach((component) => {
-        if (component.types.includes('locality')) {
-          city = component.long_name;
-        }
-        if (component.types.includes('sublocality_level_1') || component.types.includes('sublocality')) {
-          locality = component.long_name;
-        }
-        // Fallback for city if locality not found
-        if (!city && component.types.includes('administrative_area_level_2')) {
-          city = component.long_name;
-        }
-      });
-
-      locationData.value = {
-        lat: latitude,
-        lng: longitude,
-        city: city || 'Unknown',
-        locality: locality || 'Unknown'
-      };
+    if (result.success && result.data) {
+      locationData.value = result.data;
     } else {
-      error.value = 'Could not find address for your location.';
+      error.value = result.error?.message || 'Failed to get location information.';
     }
-  } catch (err) {
-    if (err instanceof GeolocationPositionError) {
-      switch (err.code) {
-        case err.PERMISSION_DENIED:
-          error.value = 'Location access denied by user.';
-          break;
-        case err.POSITION_UNAVAILABLE:
-          error.value = 'Location information is unavailable.';
-          break;
-        case err.TIMEOUT:
-          error.value = 'Location request timed out.';
-          break;
-        default:
-          error.value = 'An unknown error occurred while getting location.';
-          break;
-      }
-    } else {
-      error.value = 'Failed to get location information.';
-    }
+  } catch {
+    error.value = 'An unexpected error occurred while getting location.';
   } finally {
     isLoading.value = false;
   }
