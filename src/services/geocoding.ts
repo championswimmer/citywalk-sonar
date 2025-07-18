@@ -72,14 +72,22 @@ export async function getCurrentLocation(
 
       // Extract city and locality from address components
       let city = '';
-      let locality = '';
+      let route = '';
+      let sublocality = '';
+      let country = '';
 
       result.address_components.forEach((component) => {
         if (component.types.includes('locality')) {
           city = component.long_name;
         }
         if (component.types.includes('sublocality_level_1') || component.types.includes('sublocality')) {
-          locality = component.long_name;
+          sublocality = component.long_name;
+        }
+        if (component.types.includes('route')) {
+          route = component.long_name;
+        }
+        if (component.types.includes('country')) {
+          country = component.long_name;
         }
         // Fallback for city if locality not found
         if (!city && component.types.includes('administrative_area_level_2')) {
@@ -87,13 +95,35 @@ export async function getCurrentLocation(
         }
       });
 
+      // Format locality with route if available
+      let formattedLocality = '';
+      if (route && sublocality) {
+        formattedLocality = `${route}, ${sublocality}`;
+      } else if (route) {
+        formattedLocality = route;
+      } else if (sublocality) {
+        formattedLocality = sublocality;
+      } else {
+        formattedLocality = 'Unknown';
+      }
+
+      // Format city with country
+      let formattedCity = '';
+      if (city && country) {
+        formattedCity = `${city}, ${country}`;
+      } else if (city) {
+        formattedCity = city;
+      } else {
+        formattedCity = 'Unknown';
+      }
+
       return {
         success: true,
         data: {
           lat: latitude,
           lng: longitude,
-          city: city || 'Unknown',
-          locality: locality || 'Unknown'
+          city: formattedCity,
+          locality: formattedLocality
         }
       };
     } else {
@@ -150,14 +180,22 @@ export function parseAddressComponents(
   addressComponents: google.maps.GeocoderAddressComponent[]
 ): { city: string; locality: string } {
   let city = '';
-  let locality = '';
+  let route = '';
+  let sublocality = '';
+  let country = '';
 
   addressComponents.forEach((component) => {
     if (component.types.includes('locality')) {
       city = component.long_name;
     }
     if (component.types.includes('sublocality_level_1') || component.types.includes('sublocality')) {
-      locality = component.long_name;
+      sublocality = component.long_name;
+    }
+    if (component.types.includes('route')) {
+      route = component.long_name;
+    }
+    if (component.types.includes('country')) {
+      country = component.long_name;
     }
     // Fallback for city if locality not found
     if (!city && component.types.includes('administrative_area_level_2')) {
@@ -165,8 +203,30 @@ export function parseAddressComponents(
     }
   });
 
+  // Format locality with route if available
+  let formattedLocality = '';
+  if (route && sublocality) {
+    formattedLocality = `${route}, ${sublocality}`;
+  } else if (route) {
+    formattedLocality = route;
+  } else if (sublocality) {
+    formattedLocality = sublocality;
+  } else {
+    formattedLocality = 'Unknown';
+  }
+
+  // Format city with country
+  let formattedCity = '';
+  if (city && country) {
+    formattedCity = `${city}, ${country}`;
+  } else if (city) {
+    formattedCity = city;
+  } else {
+    formattedCity = 'Unknown';
+  }
+
   return {
-    city: city || 'Unknown',
-    locality: locality || 'Unknown'
+    city: formattedCity,
+    locality: formattedLocality
   };
 }
