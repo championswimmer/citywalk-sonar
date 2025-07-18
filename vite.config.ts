@@ -11,7 +11,8 @@ export default defineConfig({
     vueDevTools(),
   ],
   define: {
-    'import.meta.env.GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.GOOGLE_MAPS_API_KEY)
+    'import.meta.env.GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.GOOGLE_MAPS_API_KEY),
+    'import.meta.env.PERPLEXITY_API_KEY': JSON.stringify(process.env.PERPLEXITY_API_KEY)
   },
   resolve: {
     alias: {
