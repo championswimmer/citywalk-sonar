@@ -5,12 +5,15 @@ import NavBar from './components/NavBar.vue'
 
 <template>
   <div class="d-flex flex-column min-vh-100">
-    <NavBar />
+    <header class="container-fluid">
+      <NavBar />
+    </header>
 
-    <main class="flex-shrink-0 mb-4">
+    <main class="container-fluid flex-shrink-0 mb-4">
       <RouterView />
     </main>
   </div>
+
 </template>
 
 <style scoped></style>
