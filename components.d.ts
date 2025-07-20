@@ -8,13 +8,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    BCollapse: typeof import('bootstrap-vue-next/components/BCollapse')['BCollapse']
-    BNavbar: typeof import('bootstrap-vue-next/components/BNavbar')['BNavbar']
-    BNavbarBrand: typeof import('bootstrap-vue-next/components/BNavbar')['BNavbarBrand']
-    BNavbarNav: typeof import('bootstrap-vue-next/components/BNavbar')['BNavbarNav']
-    BNavbarToggle: typeof import('bootstrap-vue-next/components/BNavbar')['BNavbarToggle']
-    BNavItem: typeof import('bootstrap-vue-next/components/BNav')['BNavItem']
-    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
     IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
     IconEcosystem: typeof import('./src/components/icons/IconEcosystem.vue')['default']
@@ -23,6 +16,5 @@ declare module 'vue' {
     NavBar: typeof import('./src/components/NavBar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
   }
 }

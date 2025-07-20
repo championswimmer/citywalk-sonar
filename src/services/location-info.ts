@@ -58,6 +58,7 @@ export const LocationInfoSchema = z.object({
   climate: z.string().min(1).optional().describe('Climate and weather patterns'),
 });
 
+
 export const NearbyLocationSchema = z.object({
   name: z.string().min(1).describe('Name of the nearby location'),
   description: z.string().min(1).describe('Description of what makes this location interesting'),
@@ -96,7 +97,6 @@ export async function getLocationInfo(location: DetailedLocation): Promise<Locat
     });
 
     let locationInfo: LocationInfo;
-
     try {
       locationInfo = await generateAIObject(prompt, {
         model: 'sonar',

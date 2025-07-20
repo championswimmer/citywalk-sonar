@@ -56,7 +56,7 @@ export async function generateAIObject<T>(
       maxTokens: options.maxTokens || 1000,
     });
 
-    return result.object;
+    return result.object as T;
   } catch (error) {
     console.error('generateAIObject error:', error);
     console.error('Prompt was:', prompt);
