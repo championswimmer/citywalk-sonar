@@ -18,15 +18,7 @@ const infoError = ref<string | null>(null);
 const locationInfo = ref<LocationInfo | null>(null);
 const nearbyLocations = ref<NearbyLocation[]>([]);
 
-// Tab management state
-const activeTab = ref<'about' | 'nearby'>('about');
-
-// Function to switch tabs
-const switchTab = (tab: 'about' | 'nearby') => {
-  if (locationData.value) {
-    activeTab.value = tab;
-  }
-};
+// No longer need tab management - using router instead
 
 // Function to get user's current location
 const locateMe = async () => {
@@ -192,211 +184,44 @@ const knowMore = async () => {
           border-bottom: 2px solid #e9ecef;
           margin-bottom: 1rem;
         ">
-          <button @click="switchTab('about')" :class="{ active: activeTab === 'about' }" style="
-              padding: 0.75rem 1.5rem;
-              background: none;
-              border: none;
-              border-bottom: 2px solid transparent;
-              cursor: pointer;
-              font-size: 1rem;
-              transition: all 0.2s;
-            " :style="{
-              borderBottomColor: activeTab === 'about' ? '#007bff' : 'transparent',
-              color: activeTab === 'about' ? '#007bff' : '#6c757d',
-              fontWeight: activeTab === 'about' ? 'bold' : 'normal'
+          <router-link to="/about" custom v-slot="{ isActive, navigate }">
+            <button @click="navigate" :style="{
+              padding: '0.75rem 1.5rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: '2px solid',
+              borderBottomColor: isActive ? '#007bff' : 'transparent',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s',
+              color: isActive ? '#007bff' : '#6c757d',
+              fontWeight: isActive ? 'bold' : 'normal'
             }">
-            About
-          </button>
-          <button @click="switchTab('nearby')" :class="{ active: activeTab === 'nearby' }" style="
-              padding: 0.75rem 1.5rem;
-              background: none;
-              border: none;
-              border-bottom: 2px solid transparent;
-              cursor: pointer;
-              font-size: 1rem;
-              transition: all 0.2s;
-            " :style="{
-              borderBottomColor: activeTab === 'nearby' ? '#007bff' : 'transparent',
-              color: activeTab === 'nearby' ? '#007bff' : '#6c757d',
-              fontWeight: activeTab === 'nearby' ? 'bold' : 'normal'
+              About
+            </button>
+          </router-link>
+          <router-link to="/nearby" custom v-slot="{ isActive, navigate }">
+            <button @click="navigate" :style="{
+              padding: '0.75rem 1.5rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: '2px solid',
+              borderBottomColor: isActive ? '#007bff' : 'transparent',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s',
+              color: isActive ? '#007bff' : '#6c757d',
+              fontWeight: isActive ? 'bold' : 'normal'
             }">
-            Nearby
-          </button>
+              Nearby
+            </button>
+          </router-link>
         </div>
 
         <!-- Tab Content -->
         <div style="min-height: 300px; padding: 1rem;">
-          <!-- About Tab -->
-          <div v-if="activeTab === 'about'" style="
-            background-color: #f8f9fa;
-            border-radius: 0.375rem;
-            padding: 1.5rem;
-            border: 1px solid #e9ecef;
-          ">
-            <h3 style="margin: 0 0 1rem 0; color: #495057;">About {{ locationData.city }}</h3>
-
-            <!-- Loading state -->
-            <div v-if="isLoadingInfo" style="
-              text-align: center;
-              padding: 2rem;
-              color: #6c757d;
-            ">
-              <div style="margin-bottom: 1rem;">🔄 Loading location information...</div>
-            </div>
-
-            <!-- Location info content -->
-            <div v-else-if="locationInfo" style="color: #495057; line-height: 1.6;">
-              <!-- Description -->
-              <div style="margin-bottom: 1.5rem;">
-                <p style="margin: 0; font-size: 1.1rem;">{{ locationInfo.description }}</p>
-              </div>
-
-              <!-- History -->
-              <div v-if="locationInfo.history" style="margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🏛️ History</h4>
-                <p style="margin: 0;">{{ locationInfo.history }}</p>
-              </div>
-
-              <!-- Culture -->
-              <div v-if="locationInfo.culture" style="margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🎭 Culture</h4>
-                <p style="margin: 0;">{{ locationInfo.culture }}</p>
-              </div>
-
-              <!-- Attractions -->
-              <div v-if="locationInfo.attractions && locationInfo.attractions.length > 0"
-                style="margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🎯 Attractions</h4>
-                <ul style="margin: 0; padding-left: 1.5rem;">
-                  <li v-for="attraction in locationInfo.attractions" :key="attraction" style="margin-bottom: 0.25rem;">
-                    {{ attraction }}
-                  </li>
-                </ul>
-              </div>
-
-              <!-- Demographics -->
-              <div v-if="locationInfo.demographics" style="margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">👥 Demographics</h4>
-                <p style="margin: 0;">{{ locationInfo.demographics }}</p>
-              </div>
-
-              <!-- Economy -->
-              <div v-if="locationInfo.economy" style="margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">💼 Economy</h4>
-                <p style="margin: 0;">{{ locationInfo.economy }}</p>
-              </div>
-
-              <!-- Climate -->
-              <div v-if="locationInfo.climate" style="margin-bottom: 0;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #007bff; font-size: 1rem;">🌤️ Climate</h4>
-                <p style="margin: 0;">{{ locationInfo.climate }}</p>
-              </div>
-            </div>
-
-            <!-- No data available -->
-            <div v-else style="
-              background-color: #fff3cd;
-              border-radius: 0.25rem;
-              padding: 1rem;
-              border: 1px solid #ffeaa7;
-              text-align: center;
-            ">
-              <div style="color: #856404; margin-bottom: 0.5rem;">
-                📍 Click "Know More" to get detailed information about {{ locationData.city }}
-              </div>
-              <small style="color: #6c757d;">
-                This will include history, culture, attractions, demographics, and more.
-              </small>
-            </div>
-          </div>
-
-          <!-- Nearby Tab -->
-          <div v-if="activeTab === 'nearby'" style="
-            background-color: #f8f9fa;
-            border-radius: 0.375rem;
-            padding: 1.5rem;
-            border: 1px solid #e9ecef;
-          ">
-            <h3 style="margin: 0 0 1rem 0; color: #495057;">Nearby Places</h3>
-
-            <!-- Loading state -->
-            <div v-if="isLoadingInfo" style="
-              text-align: center;
-              padding: 2rem;
-              color: #6c757d;
-            ">
-              <div style="margin-bottom: 1rem;">🔄 Finding nearby interesting locations...</div>
-            </div>
-
-            <!-- Nearby locations content -->
-            <div v-else-if="nearbyLocations && nearbyLocations.length > 0">
-              <div v-for="(location, index) in nearbyLocations" :key="index" style="
-                  background-color: #fff;
-                  border-radius: 0.375rem;
-                  padding: 1rem;
-                  margin-bottom: 1rem;
-                  border: 1px solid #e9ecef;
-                  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                ">
-                <h4 style="margin: 0 0 0.5rem 0; color: #495057;">{{ location.name }}</h4>
-                <div style="
-                  color: #6c757d;
-                  font-size: 0.875rem;
-                  margin-bottom: 0.5rem;
-                ">
-                  <span style="
-                    background-color: #e9ecef;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.25rem;
-                    font-size: 0.75rem;
-                  ">
-                    {{ location.category }}
-                  </span>
-                  <span v-if="location.distance" style="margin-left: 0.5rem;">
-                    📍 {{ location.distance }}
-                  </span>
-                  <span v-if="location.rating" style="margin-left: 0.5rem;">
-                    ⭐ {{ location.rating }}/5
-                  </span>
-                </div>
-                <div style="
-                  color: #495057;
-                  line-height: 1.6;
-                  white-space: pre-wrap;
-                  font-size: 0.875rem;
-                ">
-                  {{ location.description }}
-                </div>
-                <div v-if="location.whyInteresting" style="
-                  margin-top: 0.5rem;
-                  padding: 0.5rem;
-                  background-color: #f0f8ff;
-                  border-radius: 0.25rem;
-                  border-left: 3px solid #007bff;
-                  font-size: 0.875rem;
-                  color: #495057;
-                ">
-                  <strong>Why it's interesting:</strong> {{ location.whyInteresting }}
-                </div>
-              </div>
-            </div>
-
-            <!-- No data available -->
-            <div v-else style="
-              background-color: #fff3cd;
-              border-radius: 0.25rem;
-              padding: 1rem;
-              border: 1px solid #ffeaa7;
-              text-align: center;
-            ">
-              <div style="color: #856404; margin-bottom: 0.5rem;">
-                🗺️ Click "Know More" to discover interesting places around {{ locationData.city }}
-              </div>
-              <small style="color: #6c757d;">
-                This will include restaurants, attractions, museums, parks, and other venues in the area.
-              </small>
-            </div>
-          </div>
+          <router-view v-if="locationData" :location-data="locationData" :location-info="locationInfo"
+            :nearby-locations="nearbyLocations" :is-loading-info="isLoadingInfo" />
         </div>
       </div>
     </div>
