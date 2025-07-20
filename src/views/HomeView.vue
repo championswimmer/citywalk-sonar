@@ -1,22 +1,19 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue';
 import { getCurrentLocation, type LocationData } from '@/services/geocoding';
-import { getLocationPackage, type LocationInfo, type NearbyLocation } from '@/services/location-info';
+import { useLocationStore } from '@/stores/location';
 
 const geocoding = inject<google.maps.GeocodingLibrary>('geocoding')
 
 console.log(geocoding)
 
+// Use location store
+const locationStore = useLocationStore();
+
 // Reactive state
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const locationData = ref<LocationData | null>(null);
-
-// Location info state
-const isLoadingInfo = ref(false);
-const infoError = ref<string | null>(null);
-const locationInfo = ref<LocationInfo | null>(null);
-const nearbyLocations = ref<NearbyLocation[]>([]);
 
 // No longer need tab management - using router instead
 
@@ -35,6 +32,12 @@ const locateMe = async () => {
 
     if (result.success && result.data) {
       locationData.value = result.data;
+      // Update the location store
+      locationStore.setCurrentLocation(result.data);
+      // Clear cache if this is a new location
+      if (locationStore.needsUpdate(result.data)) {
+        locationStore.clearCache();
+      }
     } else {
       error.value = result.error?.message || 'Failed to get location information.';
     }
@@ -42,44 +45,6 @@ const locateMe = async () => {
     error.value = 'An unexpected error occurred while getting location.';
   } finally {
     isLoading.value = false;
-  }
-};
-
-// Function to get location information using AI
-const knowMore = async () => {
-  if (!locationData.value) {
-    return;
-  }
-
-  isLoadingInfo.value = true;
-  infoError.value = null;
-
-  try {
-    const locationName = `${locationData.value.locality ?? ''}, ${locationData.value.city}`;
-    const detailedLocation = {
-      name: locationName,
-      city: locationData.value.city,
-      sublocality: locationData.value.locality,
-      latitude: locationData.value.lat,
-      longitude: locationData.value.lng
-    };
-    const result = await getLocationPackage(detailedLocation);
-
-    if (result.locationInfo.success && result.locationInfo.data) {
-      locationInfo.value = result.locationInfo.data;
-    } else {
-      infoError.value = result.locationInfo.error?.message || 'Failed to get location information.';
-    }
-
-    if (result.nearbyLocations.success && result.nearbyLocations.data) {
-      nearbyLocations.value = result.nearbyLocations.data;
-    } else {
-      infoError.value = result.nearbyLocations.error?.message || 'Failed to get nearby locations.';
-    }
-  } catch {
-    infoError.value = 'An unexpected error occurred while getting location details.';
-  } finally {
-    isLoadingInfo.value = false;
   }
 };
 </script>
@@ -140,39 +105,8 @@ const knowMore = async () => {
         <div style="margin-bottom: 0.5rem;">
           <strong>Locality:</strong> {{ locationData.locality }}
         </div>
-        <div style="font-size: 0.875rem; color: #6c757d; margin-bottom: 1rem;">
+        <div style="font-size: 0.875rem; color: #6c757d;">
           <strong>Coordinates:</strong> {{ locationData.lat.toFixed(6) }}, {{ locationData.lng.toFixed(6) }}
-        </div>
-
-        <!-- Know More Button -->
-        <button @click="knowMore" :disabled="isLoadingInfo || !locationData" style="
-            padding: 0.5rem 1rem;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: background-color 0.2s;
-            width: 100%;
-          " :style="{
-            backgroundColor: isLoadingInfo ? '#6c757d' : '#28a745',
-            cursor: isLoadingInfo ? 'not-allowed' : 'pointer'
-          }">
-          {{ isLoadingInfo ? 'Loading...' : 'Know More' }}
-        </button>
-
-        <!-- Info Error message -->
-        <div v-if="infoError" style="
-          margin-top: 0.5rem;
-          padding: 0.5rem;
-          background-color: #f8d7da;
-          border: 1px solid #f5c6cb;
-          border-radius: 0.25rem;
-          color: #721c24;
-          font-size: 0.875rem;
-        ">
-          {{ infoError }}
         </div>
       </div>
 
@@ -220,8 +154,7 @@ const knowMore = async () => {
 
         <!-- Tab Content -->
         <div style="min-height: 300px; padding: 1rem;">
-          <router-view v-if="locationData" :location-data="locationData" :location-info="locationInfo"
-            :nearby-locations="nearbyLocations" :is-loading-info="isLoadingInfo" />
+          <router-view v-if="locationData" :location-data="locationData" />
         </div>
       </div>
     </div>

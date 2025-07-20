@@ -1,15 +1,36 @@
 <script setup lang="ts">
+import { onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
 import type { LocationData } from '@/services/geocoding';
-import type { NearbyLocation } from '@/services/location-info';
+import { useLocationStore } from '@/stores/location';
 
 // Props from parent
 interface Props {
   locationData: LocationData;
-  nearbyLocations: NearbyLocation[];
-  isLoadingInfo: boolean;
 }
 
 const props = defineProps<Props>();
+
+// Use the location store
+const locationStore = useLocationStore();
+const {
+  nearbyLocations,
+  nearbyLocationsLoading: isLoading,
+  nearbyLocationsError: error
+} = storeToRefs(locationStore);
+
+// Fetch data when component is mounted
+onMounted(() => {
+  locationStore.fetchNearbyLocations(props.locationData);
+});
+
+// Watch for location data changes
+watch(() => props.locationData, (newLocation) => {
+  // Only fetch if location has changed
+  if (locationStore.needsUpdate(newLocation)) {
+    locationStore.fetchNearbyLocations(newLocation);
+  }
+});
 </script>
 
 <template>
@@ -22,7 +43,7 @@ const props = defineProps<Props>();
     <h3 style="margin: 0 0 1rem 0; color: #495057;">Nearby Places</h3>
 
     <!-- Loading state -->
-    <div v-if="props.isLoadingInfo" style="
+    <div v-if="isLoading" style="
       text-align: center;
       padding: 2rem;
       color: #6c757d;
@@ -30,9 +51,21 @@ const props = defineProps<Props>();
       <div style="margin-bottom: 1rem;">🔄 Finding nearby interesting locations...</div>
     </div>
 
+    <!-- Error state -->
+    <div v-else-if="error" style="
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      color: #721c24;
+      text-align: center;
+    ">
+      {{ error }}
+    </div>
+
     <!-- Nearby locations content -->
-    <div v-else-if="props.nearbyLocations && props.nearbyLocations.length > 0">
-      <div v-for="(location, index) in props.nearbyLocations" :key="index" style="
+    <div v-else-if="nearbyLocations && nearbyLocations.length > 0">
+      <div v-for="(location, index) in nearbyLocations" :key="index" style="
           background-color: #fff;
           border-radius: 0.375rem;
           padding: 1rem;
@@ -83,7 +116,7 @@ const props = defineProps<Props>();
       </div>
     </div>
 
-    <!-- No data available -->
+    <!-- No data available (initial state) -->
     <div v-else style="
       background-color: #fff3cd;
       border-radius: 0.25rem;
@@ -92,7 +125,7 @@ const props = defineProps<Props>();
       text-align: center;
     ">
       <div style="color: #856404; margin-bottom: 0.5rem;">
-        🗺️ Click "Know More" to discover interesting places around {{ props.locationData.city }}
+        🗺️ Loading interesting places around {{ props.locationData.city }}...
       </div>
       <small style="color: #6c757d;">
         This will include restaurants, attractions, museums, parks, and other venues in the area.

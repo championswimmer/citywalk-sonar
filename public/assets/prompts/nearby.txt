@@ -14,5 +14,3 @@ Respond with a JSON array of nearby locations. Each location must include these 
 - whyInteresting: Explanation of why this location is worth visiting (required string)
 
 Return 5-10 diverse recommendations. Ensure all required fields have non-empty values. Use the precise coordinates to find accurate nearby locations. 
-
-IMPORTANT: RESPOND DIRECTLY WITH THE JSON WITHOUT ANY OTHER TEXT AROUND IT

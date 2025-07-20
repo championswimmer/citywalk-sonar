@@ -16,5 +16,3 @@ Provide a structured response with the following information:
 - climate: Climate patterns, weather, and geographical features
 
 Please provide detailed, factual information that would be useful for someone planning to visit or learn about this location. Use the precise coordinates to ensure accuracy and focus on the specific area mentioned. 
-
-IMPORTANT: RESPOND DIRECTLY WITH THE JSON WITHOUT ANY OTHER TEXT AROUND IT

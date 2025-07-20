@@ -30,7 +30,6 @@ export async function generateAIText(
     model: perplexity(options.model),
     prompt: prompt,
     temperature: options.temperature || 0.3,
-    maxTokens: options.maxTokens || 1000,
   });
 
   return result.text;
@@ -48,15 +47,15 @@ export async function generateAIObject<T>(
 ): Promise<T> {
   console.log("Schema", options.schema);
   try {
-    const result = await generateObject({
+    const { object } = await generateObject({
       model: perplexity(options.model),
       prompt: prompt,
+      output: 'object',
       schema: options.schema,
       temperature: options.temperature || 0.3,
-      maxTokens: options.maxTokens || 1000,
     });
 
-    return result.object as T;
+    return object as T;
   } catch (error) {
     console.error('generateAIObject error:', error);
     console.error('Prompt was:', prompt);
